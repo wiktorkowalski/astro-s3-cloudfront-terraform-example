@@ -1,8 +1,9 @@
 terraform {
+  # Replace with your backend or use local
   backend "s3" {
     bucket = "wiktorkowalski-terraform-state"
     key    = "astro-s3-cloudfront-terraform-example/terraform.tfstate"
-    region = var.aws_region
+    region = "eu-west-1"
     dynamodb_table = "wiktorkowalski-terraform-state"
     encrypt = true
   }
@@ -10,7 +11,7 @@ terraform {
   required_providers {
     aws = {
       source = "hashicorp/aws"
-      version = "5.33.0"
+      version = "5.34.0"
     }
   }
 }

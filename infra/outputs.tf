@@ -3,7 +3,7 @@ output "bucket_url" {
 }
 
 output "website_url" {
-  value = "https://${tolist(aws_cloudfront_distribution.website_distribution.aliases)[0]}"
+  value = "https://${var.main_domain_name}"
 }
 
 output "cloudfront_distribution_id" {

@@ -1,5 +1,6 @@
 resource "aws_s3_bucket" "website_bucket" {
   bucket = var.website_bucket_name
+  force_destroy = true
 }
 
 resource "aws_s3_bucket_website_configuration" "website" {
@@ -14,30 +15,25 @@ resource "aws_s3_bucket_website_configuration" "website" {
   }
 }
 
-resource "aws_s3_bucket_ownership_controls" "website_bucket" {
-  bucket = aws_s3_bucket.website_bucket.id
-  rule {
-    object_ownership = "BucketOwnerPreferred"
-  }
-}
+# resource "aws_s3_bucket_ownership_controls" "website_bucket" {
+#   bucket = aws_s3_bucket.website_bucket.id
+#   rule {
+#     object_ownership = "BucketOwnerPreferred"
+#   }
+# }
 
 resource "aws_s3_bucket_public_access_block" "website_bucket" {
   bucket = aws_s3_bucket.website_bucket.id
 
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
+  # block_public_acls       = true
+  # block_public_policy     = true
+  # ignore_public_acls      = true
+  # restrict_public_buckets = true
 }
 
 resource "aws_s3_bucket_acl" "website_bucket" {
-  depends_on = [
-    aws_s3_bucket_ownership_controls.website_bucket,
-    aws_s3_bucket_public_access_block.website_bucket,
-  ]
-
   bucket = aws_s3_bucket.website_bucket.id
-  acl    = "public-read"
+  acl    = "private"
 }
 
 resource "aws_s3_bucket_policy" "policy" {
@@ -47,7 +43,7 @@ resource "aws_s3_bucket_policy" "policy" {
 
 data "aws_iam_policy_document" "s3_bucket_policy" {
   statement {
-    sid    = "PublicReadGetObject"
+    sid    = "AllowCloudFrontS3Access"
     effect = "Allow"
 
     resources = [
@@ -56,15 +52,14 @@ data "aws_iam_policy_document" "s3_bucket_policy" {
     ]
 
     actions = [
-      "s3:PutBucketPolicy",
-      "s3:GetBucketPolicy",
-      "s3:DeleteBucketPolicy",
       "s3:GetObject",
+      # "s3:PutBucketAcl",
+      # "s3:PutBucketPolicy",
     ]
 
     principals {
-      type        = "*"
-      identifiers = ["*"]
+      type        = "AWS"
+      identifiers = [aws_cloudfront_origin_access_identity.oai.iam_arn]
     }
   }
 }

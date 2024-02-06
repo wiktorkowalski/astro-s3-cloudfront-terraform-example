@@ -12,6 +12,7 @@ variable "domain_aliases" {
   description = "The domain aliases"
   nullable    = true
   type        = list(string)
+  default     = []
 }
 
 variable "website_bucket_name" {
