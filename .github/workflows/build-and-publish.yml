@@ -43,6 +43,7 @@ jobs:
       run: terraform plan
       working-directory: ./infra
       continue-on-error: false
+      timeout-minutes: 1
 
     - name: Terraform Apply
       run: terraform apply -auto-approve
