@@ -26,10 +26,10 @@ resource "aws_s3_bucket_ownership_controls" "website_bucket" {
 resource "aws_s3_bucket_public_access_block" "website_bucket" {
   bucket = aws_s3_bucket.website_bucket.id
 
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }
 
 resource "aws_s3_bucket_acl" "website_bucket" {
@@ -39,12 +39,17 @@ resource "aws_s3_bucket_acl" "website_bucket" {
   ]
 
   bucket = aws_s3_bucket.website_bucket.id
-  acl    = "public-read"
+  acl    = "private"
 }
 
 resource "aws_s3_bucket_policy" "policy" {
   bucket = aws_s3_bucket.website_bucket.id
   policy = data.aws_iam_policy_document.s3_bucket_policy.json
+}
+
+resource "aws_s3_bucket_policy" "policy2" {
+  bucket = aws_s3_bucket.website_bucket.id
+  policy = data.aws_iam_policy_document.cf_bucket_policy.json
 }
 
 data "aws_iam_policy_document" "s3_bucket_policy" {
@@ -59,25 +64,45 @@ data "aws_iam_policy_document" "s3_bucket_policy" {
 
     actions = ["s3:GetObject"]
 
-    # principals {
-    #   type        = "AWS"
-    #   identifiers = [aws_cloudfront_origin_access_identity.oai.iam_arn]
-    # }
+    principals {
+      type = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
 
     # condition {
-    #   test     = "StringEquals"
+    #   test = "StringEquals"
     #   variable = "AWS:SourceArn"
-    #   values   = [aws_cloudfront_distribution.website_distribution.arn]
+    #   values = [aws_cloudfront_distribution.website_distribution.arn]
     # }
 
     # principals {
-    #   type        = "Service"
-    #   identifiers = ["cloudfront.amazonaws.com"]
+    #   type = "AWS"
+    #   identifiers = [aws_cloudfront_origin_access_identity.oai.iam_arn]
+    # }
+  }
+}
+
+data "aws_iam_policy_document" "cf_bucket_policy" {
+  statement {
+    sid       = "AllowCloudFrontS3Access"
+    actions   = [
+      "s3:GetObject"
+    ]
+    resources = [
+      "${aws_s3_bucket.website_bucket.arn}",
+      "${aws_s3_bucket.website_bucket.arn}/*"
+    ]
+    effect = "Allow"
+    # principals {
+    #   type        = "AWS"
+    #   identifiers = [
+    #     aws_cloudfront_origin_access_identity.oai.iam_arn
+    #   ]
     # }
 
     principals {
-      type        = "*"
-      identifiers = ["*"]
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
     }
   }
 }
