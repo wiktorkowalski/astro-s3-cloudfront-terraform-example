@@ -8,7 +8,6 @@ resource "aws_s3_bucket_website_configuration" "website" {
 
   index_document {
     suffix = "index.html"
-
   }
 
   error_document {
@@ -47,61 +46,22 @@ resource "aws_s3_bucket_policy" "policy" {
   policy = data.aws_iam_policy_document.s3_bucket_policy.json
 }
 
-resource "aws_s3_bucket_policy" "policy2" {
-  bucket = aws_s3_bucket.website_bucket.id
-  policy = data.aws_iam_policy_document.cf_bucket_policy.json
-}
-
 data "aws_iam_policy_document" "s3_bucket_policy" {
   statement {
     sid    = "AllowCloudFrontS3Access"
     effect = "Allow"
 
     resources = [
-      "arn:aws:s3:::${var.website_bucket_name}",
-      "arn:aws:s3:::${var.website_bucket_name}/*",
+      # "arn:aws:s3:::${var.website_bucket_name}",
+      # "arn:aws:s3:::${var.website_bucket_name}/*",
+      "${aws_s3_bucket.website_bucket.arn}",
+      "${aws_s3_bucket.website_bucket.arn}/*",
     ]
 
     actions = ["s3:GetObject"]
 
     principals {
       type = "Service"
-      identifiers = ["cloudfront.amazonaws.com"]
-    }
-
-    # condition {
-    #   test = "StringEquals"
-    #   variable = "AWS:SourceArn"
-    #   values = [aws_cloudfront_distribution.website_distribution.arn]
-    # }
-
-    # principals {
-    #   type = "AWS"
-    #   identifiers = [aws_cloudfront_origin_access_identity.oai.iam_arn]
-    # }
-  }
-}
-
-data "aws_iam_policy_document" "cf_bucket_policy" {
-  statement {
-    sid       = "AllowCloudFrontS3Access"
-    actions   = [
-      "s3:GetObject"
-    ]
-    resources = [
-      "${aws_s3_bucket.website_bucket.arn}",
-      "${aws_s3_bucket.website_bucket.arn}/*"
-    ]
-    effect = "Allow"
-    # principals {
-    #   type        = "AWS"
-    #   identifiers = [
-    #     aws_cloudfront_origin_access_identity.oai.iam_arn
-    #   ]
-    # }
-
-    principals {
-      type        = "Service"
       identifiers = ["cloudfront.amazonaws.com"]
     }
   }
