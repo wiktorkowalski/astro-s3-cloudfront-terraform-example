@@ -1,6 +1,6 @@
 resource "aws_cloudfront_distribution" "website_distribution" {
   origin {
-    domain_name = aws_s3_bucket.website_bucket.bucket_regional_domain_name
+    domain_name = aws_s3_bucket.website.bucket_regional_domain_name
     origin_id   = var.website_bucket_name
     origin_access_control_id = aws_cloudfront_origin_access_control.oac.id
   }
@@ -42,10 +42,6 @@ resource "aws_cloudfront_distribution" "website_distribution" {
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2018"
   }
-}
-
-resource "aws_cloudfront_origin_access_identity" "oai" {
-  comment = "CF origin identity"
 }
 
 resource "aws_cloudfront_origin_access_control" "oac" {
